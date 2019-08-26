@@ -94,8 +94,7 @@ pd.DataFrame.to_xml = to_xml
 isRun = False 
 df_chunk = read_csv(db_name)
 for index, chunk in enumerate(df_chunk):
-	totalChunks = (len(df_chunk))
-	print("Currently Processing " + index + " out of ")
+	print("Currently Processing Chunk No " + index)
 
 
 	if (isRun == False):
