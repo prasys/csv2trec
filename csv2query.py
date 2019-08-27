@@ -71,24 +71,15 @@ def getCategory(input):
 	return ("NOCAT")	
 
 # The No of Columns that we want to define . It depends on how is your dataset
-def renameColumns(df):
-	df.columns = ['AUTHOR','DOCNO','HL','TEXT']
 
 ## A file format to convert to XML 
 ## Solution Taken From https://stackoverflow.com/questions/18574108/how-do-convert-a-pandas-dataframe-to-xml?rq=1
-def to_xml(df, filename=None, mode='w'):
-    def row_to_xml(row):
-        xml = ['<DOC>']
-        for i, col_name in enumerate(row.index):
-            xml.append('  <{0}>{1}</{0}>'.format(col_name, row.iloc[i]))
-        xml.append('</DOC>')
-        return '\n'.join(xml)
-    res = '\n'.join(df.apply(row_to_xml, axis=1))
 
-    if filename is None:
-        return res
-    with open(filename, mode) as f:
-        f.write(res)
+
+
+def removeWhiteSpace(text):
+	return (re.sub(r'\s+', ' ', text).strip())
+
 
 
 def to_txt(df, filename=None, mode='w'):
@@ -97,16 +88,15 @@ def to_txt(df, filename=None, mode='w'):
 		return 0
 
 	tfile = open(filename, mode)
-	tfile.write(df.to_string(header=False,index=False))
+	tfile.write(df.to_string(header=False,index=False,line_width=300))
 	tfile.close()
 
-pd.DataFrame.to_xml = to_xml # Converts to XML 
 pd.DataFrame.to_txt = to_txt # Converts to TXT
 
 isRun = False 
 df_chunk = read_csv(db_name)
 for index, chunk in enumerate(df_chunk):
-	print("Currently Processing " + index + " out of ")
+	print("Currently Processing " + str(index) + " out of ")
 
 
 	if (isRun == False):
@@ -115,12 +105,12 @@ for index, chunk in enumerate(df_chunk):
 		isRun = True
 
 
-	stop = stemit()
+	#stop = stemit()
 	print("Performing Minor Clean-Up of Documentation")
 	chunk['review_body'].replace('[!"#%\'()*+,-./:;<=>?@\[\]^_`{|}~1234567890’”“′‘\\\]',' ',inplace=True,regex=True) # removes invalid character
 	chunk['review_body'] = chunk['review_body'].str.lower()
 	chunk['review_body'] = chunk['review_body'].astype(str) # Fix In program 
+	chunk['review_body'] = chunk['review_body'].apply(removeWhiteSpace)
 	print("Transforming it into TREC-XML Format")
-	renameColumns(chunk)
 	FileName = str(index) + "_" + cat_text + ".query"
 	chunk.to_txt(FileName)
